@@ -1,0 +1,2 @@
+# ESCFFmpegRecordMp4Demo
+使用ffmpeg录制h264和h265格式的MP4格式视频
