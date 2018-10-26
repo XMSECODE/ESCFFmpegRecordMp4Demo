@@ -16,20 +16,14 @@
 #import <libswscale/swscale.h>
 #import <libswresample/swresample.h>
 
-#define MAX_NALUS_SZIE (5000)
-
 
 @interface ESCFFmpegRecordMp4Tool ()
 
 @property(nonatomic,assign)AVFormatContext *formatContext;
 
-@property(nonatomic,assign)    AVStream * o_video_stream;
+@property(nonatomic,assign)AVStream * o_video_stream;
 
 @property(nonatomic,assign)AVRational baseTime;
-
-@property(nonatomic,assign)char *strH264Nalu;
-
-@property(nonatomic,assign)int iH264NaluSize;
 
 @property(nonatomic,assign)int64_t v_pts;
 
@@ -55,9 +49,7 @@
     avcodec_register_all();
 
     ESCFFmpegRecordMp4Tool *record = [[ESCFFmpegRecordMp4Tool alloc] init];
-    char strh264nalu[MAX_NALUS_SZIE] = {0};
     
-    record.strH264Nalu = strh264nalu;
     record.videoCodeType = codecType;
     
     AVFormatContext *formatContext;
@@ -67,22 +59,17 @@
         printf("formatContext alloc failed!");
         return nil;
     }
+
+    if (ret < 0) {
+        printf("alloc failed!");
+        return nil;
+    }
     
     if (codecType == ESCVideoCodecTypeH264) {
         formatContext->video_codec_id = AV_CODEC_ID_H264;
     }else if(codecType == ESCVideoCodecTypeH265) {
         formatContext->video_codec_id = AV_CODEC_ID_H265;
     }
-    
-    if (ret < 0) {
-        printf("alloc failed!");
-        return nil;
-    }
-    if (!formatContext) {
-        printf("Could not deduce output format from file extension\n");
-        return nil;
-    }
-    
     
     AVStream *o_video_stream = avformat_new_stream(formatContext, NULL);
     
@@ -96,7 +83,7 @@
     parameters->codec_id = formatContext->video_codec_id;
     parameters->width = videoWidth;
     parameters->height = videoHeight;
-    parameters->format = AV_PIX_FMT_YUVJ420P;
+//    parameters->format = AV_PIX_FMT_YUVJ420P;
     
     av_dump_format(formatContext, 0, fileCharPath, 1);
     
@@ -162,7 +149,7 @@
     i_pkt.pts = self.v_pts;
     
     ret = [self writeFrame:_formatContext time_base:&_baseTime stream:_o_video_stream packet:&i_pkt];
-    
+    av_packet_unref(&i_pkt);
     if (ret != 0) {
         NSLog(@"添加失败");
     }
