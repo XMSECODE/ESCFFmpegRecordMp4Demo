@@ -45,6 +45,7 @@
 /* Begin PBXFileReference section */
 		F02194FF21807676002027AD /* test_1_640_360.h265 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test_1_640_360.h265; sourceTree = "<group>"; };
 		F021950021807676002027AD /* test_2_640_360.h265 */ = {isa = PBXFileReference; lastKnownFileType = file; path = test_2_640_360.h265; sourceTree = "<group>"; };
+		F063F09021880279002493E2 /* muxing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = muxing.c; sourceTree = "<group>"; };
 		F0EA67872180680A00D1FCE2 /* ESCFFmpegRecordMp4Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ESCFFmpegRecordMp4Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0EA678A2180680A00D1FCE2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		F0EA678B2180680A00D1FCE2 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -260,6 +261,7 @@
 				F0EA678B2180680A00D1FCE2 /* AppDelegate.m */,
 				F0EA678D2180680A00D1FCE2 /* ViewController.h */,
 				F0EA678E2180680A00D1FCE2 /* ViewController.m */,
+				F063F09021880279002493E2 /* muxing.c */,
 				F0EA67902180680A00D1FCE2 /* Main.storyboard */,
 				F0EA67932180681600D1FCE2 /* Assets.xcassets */,
 				F0EA67952180681600D1FCE2 /* LaunchScreen.storyboard */,

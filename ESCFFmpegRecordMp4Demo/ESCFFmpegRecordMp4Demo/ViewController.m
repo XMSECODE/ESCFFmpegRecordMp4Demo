@@ -46,7 +46,9 @@
     mp4FileName = [mp4FileName stringByReplacingOccurrencesOfString:@"h264" withString:@"mp4"];
     mp4FilePath = [NSString stringWithFormat:@"%@/%@",mp4FilePath,mp4FileName];
     
-    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath mp4FilePath:mp4FilePath videoWidth:width videoHeight:height videoFrameRate:25];
+    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"8000_1_16_1.aac" ofType:nil];
+    
+    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath aacFilePath:aacPath mp4FilePath:mp4FilePath videoWidth:width videoHeight:height videoFrameRate:25];
 }
 
 

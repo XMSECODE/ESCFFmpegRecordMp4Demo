@@ -49,4 +49,11 @@ typedef enum : NSUInteger {
                             videoHeight:(int)videoHeight
                          videoFrameRate:(int)videoFrameRate;
 
++ (void)H264RecordToMP4WithH264FilePath:(NSString *)h264FilePath
+                            aacFilePath:(NSString *)aacFilePath
+                            mp4FilePath:(NSString *)mp4FilePath
+                             videoWidth:(int)videoWidth
+                            videoHeight:(int)videoHeight
+                         videoFrameRate:(int)videoFrameRate;
+
 @end
