@@ -35,7 +35,29 @@
     mp4FileName = [mp4FileName stringByReplacingOccurrencesOfString:@"h265" withString:@"mp4"];
     mp4FilePath = [NSString stringWithFormat:@"%@/%@",mp4FilePath,mp4FileName];
     
-    [ESCFFmpegRecordMp4Tool H265RecordToMP4WithH265FilePath:h265FilePath mp4FilePath:mp4FilePath videoWidth:640 videoHeight:360 videoFrameRate:25];
+    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
+    [ESCFFmpegRecordMp4Tool H265RecordToMP4WithH265FilePath:h265FilePath
+                                                aacFilePath:aacPath
+                                                mp4FilePath:mp4FilePath
+                                                 videoWidth:640
+                                                videoHeight:360
+                                             videoFrameRate:25
+                                          audioSampleFormat:0
+                                            audioSampleRate:44100
+                                         audioChannelLayout:0
+                                              audioChannels:2];
+    
+//    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"8000_1_16_1.aac" ofType:nil];
+//    [ESCFFmpegRecordMp4Tool H265RecordToMP4WithH265FilePath:h265FilePath
+//                                                aacFilePath:aacPath
+//                                                mp4FilePath:mp4FilePath
+//                                                 videoWidth:640
+//                                                videoHeight:360
+//                                             videoFrameRate:25
+//                                          audioSampleFormat:0
+//                                            audioSampleRate:8000
+//                                         audioChannelLayout:0
+//                                              audioChannels:1];
 }
 
 - (void)recordTestH264ToMp4WithH265FileName:(NSString *)h264FileName width:(int)width height:(int)height{
