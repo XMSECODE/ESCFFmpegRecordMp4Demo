@@ -197,6 +197,8 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
 
 @property(nonatomic,assign)ESCVideoCodecType videoCodeType;
 
+@property(nonatomic,assign)NSInteger temLength;
+
 @end
 
 @implementation ESCFFmpegRecordMp4Tool
@@ -319,7 +321,7 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
     parameters->codec_id = formatContext->video_codec_id;
     parameters->width = videoWidth;
     parameters->height = videoHeight;
-    //    parameters->format = AV_PIX_FMT_YUVJ420P;
+    parameters->format = AV_PIX_FMT_YUV420P;
     
     /*====================================audio stream===================================================================================================*/
     AVStream *out_audio_stream = avformat_new_stream(formatContext, NULL);
@@ -335,7 +337,7 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
     audioParameters->sample_rate = audioSampleRate;
     //AVSampleFormat
     audioParameters->format = AV_SAMPLE_FMT_S16P;
-    audioParameters->codec_id = AV_CODEC_ID_PCM_S16LE;
+    audioParameters->codec_id = AV_CODEC_ID_AAC;
     audioParameters->codec_type = AVMEDIA_TYPE_AUDIO;
     audioParameters->bit_rate = 64000;
     audioParameters->channels = audioChannels;
@@ -419,18 +421,28 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
     pkt.size = iLen;
     pkt.data = pData;
     
-    self.a_dts++;
-    self.a_pts++;
+    //取number_of_raw_data_blocks_in_frame
+    uint8_t frameSampleLength = pData[7];
+    frameSampleLength = frameSampleLength & 0x3;
+    frameSampleLength += 1;
+    self.a_dts += 1024 * frameSampleLength;
+    self.a_pts += 1024 * frameSampleLength;
+    
+    
     pkt.dts = self.a_dts;
     pkt.pts = self.a_pts;
     
 //    ret = write_frame(oc, &c->time_base, ost->st, &pkt);
     ret = [self writeFrame:_formatContext time_base:&_audio_baseTime stream:_out_audio_stream packet:&pkt];
     if (ret < 0) {
-        fprintf(stderr, "Error while writing audio frame: %s\n",
-                av_err2str(ret));
+        fprintf(stderr, "%d======failed error while writing audio frame: %s\n",length,av_err2str(ret));
 //        exit(1);
+        self.a_dts -= 1024 * frameSampleLength;
+        self.a_pts -= 1024 * frameSampleLength;
         return;
+    }else {
+        self.temLength+=1;
+        printf("%d===%d====add audio success!\n",length,self.temLength);
     }
     
 }
@@ -572,7 +584,11 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
                             mp4FilePath:(NSString *)mp4FilePath
                              videoWidth:(int)videoWidth
                             videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate {
+                         videoFrameRate:(int)videoFrameRate
+                      audioSampleFormat:(int)audioSampleFormat
+                        audioSampleRate:(int)audioSampleRate
+                     audioChannelLayout:(int)audioChannelLayout
+                          audioChannels:(int)audioChannels {
     NSData *h264Data = [NSData dataWithContentsOfFile:h264FilePath];
     
     ESCFFmpegRecordMp4Tool *tool;
@@ -590,9 +606,9 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
                                                   videoHeight:videoHeight
                                                videoFrameRate:videoFrameRate
                                             audioSampleFormat:1
-                                              audioSampleRate:8000
+                                              audioSampleRate:audioSampleRate
                                            audioChannelLayout:0
-                                                audioChannels:1];
+                                                audioChannels:audioChannels];
     }
     int8_t *videoData = (int8_t *)[h264Data bytes];
     int lastJ = 0;
@@ -634,6 +650,7 @@ static AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
                 int frame_size = j - lastJ;
                 if (frame_size > 7) {
                     [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+                    NSLog(@"%@",[NSData dataWithBytes:&voiceData[lastJ] length:frame_size]);
                     lastJ = j;
                 }
             }

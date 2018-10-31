@@ -54,6 +54,10 @@ typedef enum : NSUInteger {
                             mp4FilePath:(NSString *)mp4FilePath
                              videoWidth:(int)videoWidth
                             videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate;
+                         videoFrameRate:(int)videoFrameRate
+                      audioSampleFormat:(int)audioSampleFormat
+                        audioSampleRate:(int)audioSampleRate
+                     audioChannelLayout:(int)audioChannelLayout
+                          audioChannels:(int)audioChannels;
 
 @end
