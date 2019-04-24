@@ -50,7 +50,7 @@
     
     av_register_all();
     avcodec_register_all();
-
+    
     ESCFFmpegRecordMp4Tool *record = [[ESCFFmpegRecordMp4Tool alloc] init];
     
     record.videoCodeType = codecType;
@@ -62,31 +62,44 @@
         printf("formatContext alloc failed!");
         return nil;
     }
-
+    
     if (ret < 0) {
         printf("alloc failed!");
         return nil;
     }
     
+    /*===========================video stream=============================================================================================================*/
     if (codecType == ESCVideoCodecTypeH264) {
         formatContext->video_codec_id = AV_CODEC_ID_H264;
     }else if(codecType == ESCVideoCodecTypeH265) {
         formatContext->video_codec_id = AV_CODEC_ID_H265;
     }
     
-    AVStream *o_video_stream = avformat_new_stream(formatContext, NULL);
+    
+    AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
+    if (videoCodec) {
+        printf("find videocodec success!\n");
+    }
+    AVStream *o_video_stream = avformat_new_stream(formatContext, videoCodec);
+    if (o_video_stream == NULL) {
+        printf("create video stream failed!");
+        return nil;
+    }
     
     o_video_stream->time_base = (AVRational){ 1, videoFrameRate };
     record.video_baseTime = o_video_stream->time_base;
     
-        
+    
     AVCodecParameters *parameters = o_video_stream->codecpar;
     parameters->bit_rate = 1200000;
     parameters->codec_type = AVMEDIA_TYPE_VIDEO;
     parameters->codec_id = formatContext->video_codec_id;
     parameters->width = videoWidth;
     parameters->height = videoHeight;
-//    parameters->format = AV_PIX_FMT_YUVJ420P;
+    parameters->format = AV_PIX_FMT_YUV420P;
+    
+    /*=======================================================================================================================================*/
+    
     
     av_dump_format(formatContext, 0, fileCharPath, 1);
     
@@ -95,15 +108,30 @@
         printf("open io failed!");
         return nil;
     }
+    AVDictionary *opt = NULL;
+//    ret = av_dict_set(&opt, "movflags", "faststart", 0);
+//    if (ret < 0) {
+//        printf("set option failed！");
+//        return nil;
+//    }
+    ret = av_dict_set_int(&opt, "framerate", 20, 0);
+    if (ret < 0) {
+        printf("set option failed！");
+        return nil;
+    }
     
-    ret = avformat_write_header(formatContext, NULL);
+    printf("start write header!\n");
+    ret = avformat_write_header(formatContext, &opt);
     if (ret < 0) {
         printf("write header failed!");
         return nil;
+    }else {
+        printf("write header success!\n");
     }
     
     record.formatContext = formatContext;
     record.o_video_stream = o_video_stream;
+    
     return record;
 }
 
@@ -144,7 +172,12 @@
         formatContext->video_codec_id = AV_CODEC_ID_H265;
     }
     
-    AVStream *o_video_stream = avformat_new_stream(formatContext, NULL);
+    
+    AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
+    if (videoCodec) {
+        printf("find videocodec success!\n");
+    }
+    AVStream *o_video_stream = avformat_new_stream(formatContext, videoCodec);
     if (o_video_stream == NULL) {
         printf("create video stream failed!");
         return nil;
@@ -163,7 +196,12 @@
     parameters->format = AV_PIX_FMT_YUV420P;
     
     /*====================================audio stream===================================================================================================*/
-    AVStream *out_audio_stream = avformat_new_stream(formatContext, NULL);
+    AVCodec *audioCodec = NULL;
+    audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    if (audioCodec) {
+        printf("find audioCodec success!\n");
+    }
+    AVStream *out_audio_stream = avformat_new_stream(formatContext, audioCodec);
     if (out_audio_stream == NULL) {
         printf("create audio stream failed!");
         return nil;
@@ -194,11 +232,25 @@
         printf("open io failed!");
         return nil;
     }
-    
-    ret = avformat_write_header(formatContext, NULL);
+    AVDictionary *opt = NULL;
+    ret = av_dict_set(&opt, "movflags", "faststart", 0);
+    if (ret < 0) {
+        printf("set option failed！");
+        return nil;
+    }
+    ret = av_dict_set_int(&opt, "framerate", 20, 0);
+    if (ret < 0) {
+        printf("set option failed！");
+        return nil;
+    }
+
+    printf("start write header!\n");
+    ret = avformat_write_header(formatContext, &opt);
     if (ret < 0) {
         printf("write header failed!");
         return nil;
+    }else {
+        printf("write header success!\n");
     }
     
     record.formatContext = formatContext;
@@ -216,7 +268,7 @@
     av_init_packet(&i_pkt);
     i_pkt.size = iLen;
     i_pkt.data = pData;
-    
+
     if (self.videoCodeType == ESCVideoCodecTypeH265) {
         //h265
         if( pData[0] == 0x00 && pData[1] == 0x00 && pData[2] == 0x00 && pData[3] == 0x01 &&  pData[4] == 0x40 ){
@@ -234,10 +286,10 @@
             }
         }
     }
-    self.v_dts++;
-    self.v_pts++;
     i_pkt.dts = self.v_dts;
     i_pkt.pts = self.v_pts;
+    self.v_dts++;
+    self.v_pts++;
     
     ret = [self writeFrame:_formatContext time_base:&_video_baseTime stream:_o_video_stream packet:&i_pkt];
     av_packet_unref(&i_pkt);
@@ -301,8 +353,12 @@
 - (void)stopRecord {
     if( _formatContext )
     {
-        av_write_trailer(_formatContext);
-        
+        int ret = av_write_trailer(_formatContext);
+        if(ret != 0) {
+            NSLog(@"结束文件失败");
+        }else {
+            NSLog(@"结束文件成功");
+        }
         //        if( pFormat->o_audio_stream )
         //        {
         //            avcodec_close(pFormat->o_audio_stream->codec);
@@ -480,22 +536,39 @@
                 uint8_t NALU = videoData[i+4];
                 int type = NALU & 0x1f;
 //                NSLog(@"%d===%d",type,NALU);
-                if (lastType == 5 || lastType == 1) {
+                if (lastType == 5 || lastType == 1 || lastType == 7 || lastType == 8 || lastType == 6) {
                     int frame_size = i - lastJ;
-                    [tool writeVideoFrame:&videoData[lastJ] length:frame_size];
+                    int8_t *result = [self Annex_BToAvcc:&videoData[lastJ] length:frame_size];
+                    [tool writeVideoFrame:result length:frame_size];
                     lastJ = i;
                 }
                 lastType = type;
             }
         }else if (i == h264Data.length - 1) {
             int frame_size = i - lastJ;
-            [tool writeVideoFrame:&videoData[lastJ] length:frame_size];
+            int8_t *result = [self Annex_BToAvcc:&videoData[lastJ] length:frame_size];
+            [tool writeVideoFrame:result length:frame_size];
             lastJ = i;
         }
     }
     
     [tool stopRecord];
     NSLog(@"完成");
+}
+
++ (int8_t *)Annex_BToAvcc:(int8_t *)data length:(int)length {
+    NSData *data1 = [NSData dataWithBytes:(data+4) length:length - 4];
+    int8_t header[4] = {0};
+    int len = length - 4;
+    header[0] = len >> 24;
+    header[1] = len >> 16;
+    header[2] = len >> 8;
+    header[3] = len & 0xff;
+    
+    NSMutableData *resultData = [NSMutableData dataWithBytes:header length:4];
+    [resultData appendData:data1];
+    int8_t *result = [resultData bytes];
+    return result;
 }
 
 + (void)H264RecordToMP4WithH264FilePath:(NSString *)h264FilePath
@@ -545,6 +618,7 @@
                 //                NSLog(@"%d===%d",type,NALU);
                 if (lastType == 5 || lastType == 1) {
                     int frame_size = i - lastJ;
+//                    NSLog(@"%d",frame_size);
                     [tool writeVideoFrame:&videoData[lastJ] length:frame_size];
                     lastJ = i;
                 }
@@ -552,6 +626,7 @@
             }
         }else if (i == h264Data.length - 1) {
             int frame_size = i - lastJ;
+//            NSLog(@"%d",frame_size);
             [tool writeVideoFrame:&videoData[lastJ] length:frame_size];
             lastJ = i;
         }
@@ -568,7 +643,7 @@
                 //0xfff判断AAC头
                 int frame_size = j - lastJ;
                 if (frame_size > 7) {
-                    [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+                    [tool writeAudioFrame:&voiceData[lastJ + 7] length:frame_size - 7];
 //                    NSLog(@"%@",[NSData dataWithBytes:&voiceData[lastJ] length:frame_size]);
                     lastJ = j;
                 }
@@ -576,7 +651,7 @@
         }else if (j == aacData.length - 1) {
             int frame_size = j - lastJ;
             if (frame_size > 7) {
-                [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+                [tool writeAudioFrame:&voiceData[lastJ + 7] length:frame_size - 7];
                 lastJ = j;
             }
         }
