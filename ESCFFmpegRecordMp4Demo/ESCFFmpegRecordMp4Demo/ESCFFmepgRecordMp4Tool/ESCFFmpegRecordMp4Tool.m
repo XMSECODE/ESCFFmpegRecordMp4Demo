@@ -38,6 +38,8 @@
 
 @property(nonatomic,assign)ESCVideoCodecType videoCodeType;
 
+@property(nonatomic,assign)BOOL getH264Extradata;
+
 @end
 
 @implementation ESCFFmpegRecordMp4Tool
@@ -99,39 +101,39 @@
     o_video_stream->codecpar->format = AV_PIX_FMT_YUVJ420P;
     /*=======================================================================================================================================*/
     {
-        o_video_stream->codecpar->codec_tag = 0;
-        o_video_stream->codecpar->bit_rate = 0;
-        o_video_stream->codecpar->bits_per_raw_sample = 8;
-        o_video_stream->codecpar->bits_per_coded_sample = 0;
-        o_video_stream->codecpar->profile = 100;
-        o_video_stream->codecpar->level = 31;
-        AVRational rationa;
-        rationa.num = 0;
-        rationa.den = 1;
-        o_video_stream->codecpar->sample_aspect_ratio = rationa;
-        o_video_stream->codecpar->field_order = AV_FIELD_PROGRESSIVE;
-        o_video_stream->codecpar->color_range = AVCOL_RANGE_JPEG;
-        o_video_stream->codecpar->color_primaries = AVCOL_PRI_UNSPECIFIED;
-        o_video_stream->codecpar->color_trc = AVCOL_TRC_UNSPECIFIED;
-        o_video_stream->codecpar->color_space = AVCOL_SPC_UNSPECIFIED;
-        o_video_stream->codecpar->chroma_location = AVCHROMA_LOC_LEFT;
-        o_video_stream->codecpar->video_delay = 0;
-        o_video_stream->codecpar->channel_layout = 0;
-        o_video_stream->codecpar->sample_rate = 0;
-        o_video_stream->codecpar->frame_size = 0;
-        o_video_stream->codecpar->initial_padding = 0;
-        o_video_stream->codecpar->trailing_padding = 0;
-        o_video_stream->codecpar->seek_preroll = 0;
+//        o_video_stream->codecpar->codec_tag = 0;
+//        o_video_stream->codecpar->bit_rate = 0;
+//        o_video_stream->codecpar->bits_per_raw_sample = 8;
+//        o_video_stream->codecpar->bits_per_coded_sample = 0;
+//        o_video_stream->codecpar->profile = 100;
+//        o_video_stream->codecpar->level = 31;
+//        AVRational rationa;
+//        rationa.num = 0;
+//        rationa.den = 1;
+//        o_video_stream->codecpar->sample_aspect_ratio = rationa;
+//        o_video_stream->codecpar->field_order = AV_FIELD_PROGRESSIVE;
+//        o_video_stream->codecpar->color_range = AVCOL_RANGE_JPEG;
+//        o_video_stream->codecpar->color_primaries = AVCOL_PRI_UNSPECIFIED;
+//        o_video_stream->codecpar->color_trc = AVCOL_TRC_UNSPECIFIED;
+//        o_video_stream->codecpar->color_space = AVCOL_SPC_UNSPECIFIED;
+//        o_video_stream->codecpar->chroma_location = AVCHROMA_LOC_LEFT;
+//        o_video_stream->codecpar->video_delay = 0;
+//        o_video_stream->codecpar->channel_layout = 0;
+//        o_video_stream->codecpar->sample_rate = 0;
+//        o_video_stream->codecpar->frame_size = 0;
+//        o_video_stream->codecpar->initial_padding = 0;
+//        o_video_stream->codecpar->trailing_padding = 0;
+//        o_video_stream->codecpar->seek_preroll = 0;
 
 
-        o_video_stream->codecpar->extradata_size = 32;
-        int8_t testdata[32] = {0x00,0x00,0x00,0x01,0x27,0x64,0x00,0x1F,0xAC,0x56,0x50,0x78,0x1B,0x7E,0x69,0xB8,0x10,0x10,0x10,0x36,0x82,0x21,0x19,0x60,0x00,0x00,0x00,0x01,0x28,0xEE,0x37,0x27};
-//        000000142764001FAC5650781B7E69B810101036822119600000000428EE3727
-        uint8_t *resultd = av_malloc(32);
-        for (int i = 0; i < 32; i++) {
-            resultd[i] = testdata[i];
-        }
-        o_video_stream->codecpar->extradata = resultd;
+//        o_video_stream->codecpar->extradata_size = 32;
+//        int8_t testdata[32] = {0x00,0x00,0x00,0x01,0x27,0x64,0x00,0x1F,0xAC,0x56,0x50,0x78,0x1B,0x7E,0x69,0xB8,0x10,0x10,0x10,0x36,0x82,0x21,0x19,0x60,0x00,0x00,0x00,0x01,0x28,0xEE,0x37,0x27};
+////        000000142764001FAC5650781B7E69B810101036822119600000000428EE3727
+//        uint8_t *resultd = av_malloc(32);
+//        for (int i = 0; i < 32; i++) {
+//            resultd[i] = testdata[i];
+//        }
+//        o_video_stream->codecpar->extradata = resultd;
     }
     av_dump_format(formatContext, 0, fileCharPath, 1);
     
@@ -292,7 +294,92 @@
     return record;
 }
 
+- (BOOL)getPPsAndSPS:(void *)data length:(int)length {
+    if (self.getH264Extradata == YES) {
+        return YES;
+    }
+    
+    int8_t *videoData = (int8_t *)data;
+    int lastJ = 0;
+    int lastType = 0;
+    
+    BOOL getSPS = NO;
+    BOOL getPPS = NO;
+    NSData *pps = nil;
+    NSData *sps = nil;
+    
+    for (int i = 0; i < length - 1; i++) {
+        if (getPPS == YES && getSPS == YES) {
+            break;
+        }
+        //读取头
+        if (videoData[i] == 0x00 &&
+            videoData[i + 1] == 0x00 &&
+            videoData[i + 2] == 0x00 &&
+            videoData[i + 3] == 0x01) {
+            if (i >= 0) {
+                uint8_t NALU = videoData[i+4];
+                int type = NALU & 0x1f;
+                if (lastType == 8 && getPPS == NO) {
+                    //get pps
+                    getPPS = YES;
+                    int frame_size = i - lastJ;
+                    pps = [NSData dataWithBytes:&videoData[lastJ] length:frame_size];
+                    lastJ = i;
+                }else if(lastType == 7 && getSPS == NO) {
+                    //get sps
+                    getSPS = YES;
+                    int frame_size = i - lastJ;
+                    sps = [NSData dataWithBytes:&videoData[lastJ] length:frame_size];
+                    lastJ = i;
+                }
+                lastType = type;
+            }
+        }else if (i == length - 1) {
+            if (lastType == 8 && getPPS == NO) {
+                //get pps
+                getPPS = YES;
+                int frame_size = i - lastJ;
+                pps = [NSData dataWithBytes:&videoData[lastJ] length:frame_size];
+                lastJ = i;
+            }else if(lastType == 7 && getSPS == NO) {
+                //get sps
+                getSPS = YES;
+                int frame_size = i - lastJ;
+                sps = [NSData dataWithBytes:&videoData[lastJ] length:frame_size];
+                lastJ = i;
+            }
+            lastJ = i;
+        }
+    }
+    if (getSPS == YES && getPPS == YES) {
+        //sps + pps
+        self.o_video_stream->codecpar->extradata_size = (int)sps.length + (int)pps.length;
+        uint8_t *resultd = av_malloc(sps.length + pps.length);
+        int8_t *spsData = (int8_t *)[sps bytes];
+        int8_t *ppsData = (int8_t *)[pps bytes];
+        for (int i = 0; i < sps.length; i++) {
+            resultd[i] = spsData[i];
+        }
+        for (int i = 0; i < pps.length; i++) {
+            resultd[i + sps.length] = ppsData[i];
+        }
+        self.o_video_stream->codecpar->extradata = resultd;
+        self.getH264Extradata = YES;
+        return YES;
+    }else {
+        return NO;
+    }
+}
+
 - (void)writeVideoFrame:(void *)data length:(int)length {
+    //读取pps和sps
+    if (self.videoCodeType == ESCVideoCodecTypeH264) {
+        BOOL isGetPPSAndSPS = [self getPPsAndSPS:data length:length];
+        if (isGetPPSAndSPS == NO) {
+            return;
+        }
+    }
     
     uint8_t *pData = data;
     int iLen = length;
@@ -315,7 +402,6 @@
             if ((pData[4] & 0x1f) == 7) {
                 //标记为关键帧
                 i_pkt.flags |= AV_PKT_FLAG_KEY;
-                //        NSLog(@"关键帧");
             }
         }
     }
@@ -371,13 +457,8 @@
 }
 
 - (int)writeFrame:(AVFormatContext*)fmt_ctx time_base:(AVRational *)time_base stream:(AVStream *)stream packet:(AVPacket *)pkt {
-    /* rescale output packet timestamp values from codec to stream timebase */
-//    printf("%d==%d===%d==%d\n",time_base->num,time_base->den,stream->time_base.num,stream->time_base.den);
     av_packet_rescale_ts(pkt, *time_base, stream->time_base);
     pkt->stream_index = stream->index;
-//    printf("%d===%d\n",pkt->dts,pkt->pts);
-//    NSLog(@"%d",stream->index);
-//    return av_write_frame(fmt_ctx, pkt);
     return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 

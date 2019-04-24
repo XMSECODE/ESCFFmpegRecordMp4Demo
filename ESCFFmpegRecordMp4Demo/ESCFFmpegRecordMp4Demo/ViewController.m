@@ -22,8 +22,8 @@
 //    [self recordTestH265ToMp4WithH265FileName:@"test_2_640_360.h265"];
     
     [self recordTestH264ToMp4WithH265FileName:@"video_480_854.h264" width:480 height:854];
-//    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720.h264" width:1280 height:720];
-//    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720_2.h264" width:1280 height:720];
+    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720.h264" width:1280 height:720];
+    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720_2.h264" width:1280 height:720];
     NSLog(@"%@",NSHomeDirectory());
     
     NSString *mp4FilePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
@@ -79,6 +79,9 @@
     
     NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
     [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath mp4FilePath:mp4FilePath videoWidth:width videoHeight:height videoFrameRate:25];
+    
+    [self saveVideo:mp4FilePath];
+    
 //    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath
 //                                                aacFilePath:aacPath
 //                                                mp4FilePath:mp4FilePath
@@ -103,5 +106,28 @@
 //                                              audioChannels:1];
 }
 
+//videoPath为视频下载到本地之后的本地路径
+- (void)saveVideo:(NSString *)videoPath{
+    
+    if (videoPath) {
+        NSURL *url = [NSURL URLWithString:videoPath];
+        BOOL compatible = UIVideoAtPathIsCompatibleWithSavedPhotosAlbum([url path]);
+        if (compatible)
+        {
+            //保存相册核心代码
+            UISaveVideoAtPathToSavedPhotosAlbum([url path], self, @selector(savedPhotoImage:didFinishSavingWithError:contextInfo:), nil);
+        }
+    }
+}
 
+
+//保存视频完成之后的回调
+- (void) savedPhotoImage:(UIImage*)image didFinishSavingWithError: (NSError *)error contextInfo: (void *)contextInfo {
+    if (error) {
+        NSLog(@"保存视频失败%@", error.localizedDescription);
+    }
+    else {
+        NSLog(@"保存视频成功");
+    }
+}
 @end

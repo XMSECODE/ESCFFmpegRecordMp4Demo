@@ -806,7 +806,7 @@ int retestff(char *in_file,char *out_file){
         
         pkt.stream_index = stream_mapping[pkt.stream_index];
         out_stream = ofmt_ctx->streams[pkt.stream_index];
-        log_packet(ifmt_ctx, &pkt);
+//        log_packet(ifmt_ctx, &pkt);
         
         /* copy packet */
         pkt.dts = av_rescale_q_rnd(pkt.dts, in_stream->time_base, out_stream->time_base, AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
