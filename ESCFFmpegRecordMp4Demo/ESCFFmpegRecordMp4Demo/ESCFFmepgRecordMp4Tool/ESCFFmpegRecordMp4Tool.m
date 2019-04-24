@@ -62,7 +62,10 @@
         printf("formatContext alloc failed!");
         return nil;
     }
-    
+    AVOutputFormat *ofmt = NULL;
+
+    ofmt = formatContext->oformat;
+
     if (ret < 0) {
         printf("alloc failed!");
         return nil;
@@ -76,11 +79,8 @@
     }
     
     
-    AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
-    if (videoCodec) {
-        printf("find videocodec success!\n");
-    }
-    AVStream *o_video_stream = avformat_new_stream(formatContext, videoCodec);
+   
+    AVStream *o_video_stream = avformat_new_stream(formatContext, NULL);
     if (o_video_stream == NULL) {
         printf("create video stream failed!");
         return nil;
@@ -88,19 +88,51 @@
     
     o_video_stream->time_base = (AVRational){ 1, videoFrameRate };
     record.video_baseTime = o_video_stream->time_base;
+    o_video_stream->codecpar->codec_tag = 0;
+
     
-    
-    AVCodecParameters *parameters = o_video_stream->codecpar;
-    parameters->bit_rate = 1200000;
-    parameters->codec_type = AVMEDIA_TYPE_VIDEO;
-    parameters->codec_id = formatContext->video_codec_id;
-    parameters->width = videoWidth;
-    parameters->height = videoHeight;
-    parameters->format = AV_PIX_FMT_YUV420P;
-    
+    o_video_stream->codecpar->bit_rate = 1200000;
+    o_video_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    o_video_stream->codecpar->codec_id = formatContext->video_codec_id;
+    o_video_stream->codecpar->width = videoWidth;
+    o_video_stream->codecpar->height = videoHeight;
+    o_video_stream->codecpar->format = AV_PIX_FMT_YUVJ420P;
     /*=======================================================================================================================================*/
-    
-    
+    {
+        o_video_stream->codecpar->codec_tag = 0;
+        o_video_stream->codecpar->bit_rate = 0;
+        o_video_stream->codecpar->bits_per_raw_sample = 8;
+        o_video_stream->codecpar->bits_per_coded_sample = 0;
+        o_video_stream->codecpar->profile = 100;
+        o_video_stream->codecpar->level = 31;
+        AVRational rationa;
+        rationa.num = 0;
+        rationa.den = 1;
+        o_video_stream->codecpar->sample_aspect_ratio = rationa;
+        o_video_stream->codecpar->field_order = AV_FIELD_PROGRESSIVE;
+        o_video_stream->codecpar->color_range = AVCOL_RANGE_JPEG;
+        o_video_stream->codecpar->color_primaries = AVCOL_PRI_UNSPECIFIED;
+        o_video_stream->codecpar->color_trc = AVCOL_TRC_UNSPECIFIED;
+        o_video_stream->codecpar->color_space = AVCOL_SPC_UNSPECIFIED;
+        o_video_stream->codecpar->chroma_location = AVCHROMA_LOC_LEFT;
+        o_video_stream->codecpar->video_delay = 0;
+        o_video_stream->codecpar->channel_layout = 0;
+        o_video_stream->codecpar->sample_rate = 0;
+        o_video_stream->codecpar->frame_size = 0;
+        o_video_stream->codecpar->initial_padding = 0;
+        o_video_stream->codecpar->trailing_padding = 0;
+        o_video_stream->codecpar->seek_preroll = 0;
+
+
+        o_video_stream->codecpar->extradata_size = 32;
+        int8_t testdata[32] = {0x00,0x00,0x00,0x01,0x27,0x64,0x00,0x1F,0xAC,0x56,0x50,0x78,0x1B,0x7E,0x69,0xB8,0x10,0x10,0x10,0x36,0x82,0x21,0x19,0x60,0x00,0x00,0x00,0x01,0x28,0xEE,0x37,0x27};
+//        000000142764001FAC5650781B7E69B810101036822119600000000428EE3727
+        uint8_t *resultd = av_malloc(32);
+        for (int i = 0; i < 32; i++) {
+            resultd[i] = testdata[i];
+        }
+        o_video_stream->codecpar->extradata = resultd;
+    }
     av_dump_format(formatContext, 0, fileCharPath, 1);
     
     ret = avio_open(&formatContext->pb, fileCharPath, AVIO_FLAG_WRITE);
@@ -232,6 +264,7 @@
         printf("open io failed!");
         return nil;
     }
+//    av_dict_set(<#AVDictionary **pm#>, <#const char *key#>, <#const char *value#>, <#int flags#>)
     AVDictionary *opt = NULL;
     ret = av_dict_set(&opt, "movflags", "faststart", 0);
     if (ret < 0) {
@@ -359,23 +392,7 @@
         }else {
             NSLog(@"结束文件成功");
         }
-        //        if( pFormat->o_audio_stream )
-        //        {
-        //            avcodec_close(pFormat->o_audio_stream->codec);
-        //            av_frame_free(&pFormat->frame);
-        //            av_frame_free(&pFormat->tmp_frame);
-        //            swr_free(&pFormat->swr_ctx);
-        //        }
-        
-        
-        if(_o_video_stream){
-            _o_video_stream->codecpar->extradata_size = 0;
-//            _o_video_stream->codec->extradata_size = 0;
-            _o_video_stream->codecpar->extradata = NULL;
-//            _o_video_stream->codec->extradata = NULL;
-//            avcodec_close(_o_video_stream->codec);
-        }
-        
+
         avio_close(_formatContext->pb);
         avformat_free_context(_formatContext);
     }
@@ -536,7 +553,8 @@
                 uint8_t NALU = videoData[i+4];
                 int type = NALU & 0x1f;
 //                NSLog(@"%d===%d",type,NALU);
-                if (lastType == 5 || lastType == 1 || lastType == 7 || lastType == 8 || lastType == 6) {
+                if (lastType == 5 || lastType == 1) {
+//                    if (lastType == 5 || lastType == 1 || lastType == 7 || lastType == 8 || lastType == 6) {
                     int frame_size = i - lastJ;
                     int8_t *result = [self Annex_BToAvcc:&videoData[lastJ] length:frame_size];
                     [tool writeVideoFrame:result length:frame_size];
@@ -568,7 +586,7 @@
     NSMutableData *resultData = [NSMutableData dataWithBytes:header length:4];
     [resultData appendData:data1];
     int8_t *result = [resultData bytes];
-    return result;
+    return data;
 }
 
 + (void)H264RecordToMP4WithH264FilePath:(NSString *)h264FilePath
