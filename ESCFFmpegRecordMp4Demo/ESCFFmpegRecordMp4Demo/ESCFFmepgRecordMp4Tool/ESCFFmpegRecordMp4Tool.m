@@ -201,12 +201,7 @@
 }
 
 - (BOOL)createAudioStream {
-    AVCodec *audioCodec = NULL;
-    audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
-    if (audioCodec) {
-        printf("find audioCodec success!\n");
-    }
-    AVStream *out_audio_stream = avformat_new_stream(_formatContext, audioCodec);
+    AVStream *out_audio_stream = avformat_new_stream(_formatContext, NULL);
     if (out_audio_stream == NULL) {
         printf("create audio stream failed!");
         return nil;
@@ -218,14 +213,14 @@
     AVCodecParameters *audioParameters = out_audio_stream->codecpar;
     audioParameters->sample_rate = self.audioSampleRate;
     //AVSampleFormat
-    audioParameters->format = AV_SAMPLE_FMT_S16P;
-    audioParameters->codec_id = AV_CODEC_ID_AAC;
     audioParameters->codec_type = AVMEDIA_TYPE_AUDIO;
-    audioParameters->bit_rate = 64000;
+    audioParameters->codec_id = AV_CODEC_ID_AAC;
+    audioParameters->format = AV_SAMPLE_FMT_FLTP;
+    audioParameters->bit_rate = 80275;//
     audioParameters->channels = self.audioChannels;
     audioParameters->channel_layout = self.audioChannelLayout;
+    audioParameters->frame_size = 1024;
     //    audioParameters->channels = av_get_channel_layout_nb_channels(audioParameters->channel_layout);
-    out_audio_stream->time_base = (AVRational){ 1, audioParameters->sample_rate};
     self.out_audio_stream = out_audio_stream;
     
     return YES;
@@ -394,16 +389,22 @@
     pkt.size = iLen;
     pkt.data = pData;
     
+    
     //取number_of_raw_data_blocks_in_frame
-    uint8_t frameSampleLength = pData[7];
+    uint8_t frameSampleLength = pData[6];
     frameSampleLength = frameSampleLength & 0x3;
     frameSampleLength += 1;
     self.a_dts += 1024 * frameSampleLength;
     self.a_pts += 1024 * frameSampleLength;
     
+    NSLog(@"%d==%d",frameSampleLength,length);
     
     pkt.dts = self.a_dts;
     pkt.pts = self.a_pts;
+    pkt.duration = 1024 * frameSampleLength;
+    
+    printf("dts  %d  ",pkt.dts);
+    printf("pts  %d  ",pkt.pts);
     
 //    ret = write_frame(oc, &c->time_base, ost->st, &pkt);
     ret = [self writeFrame:_formatContext time_base:&_audio_baseTime stream:_out_audio_stream packet:&pkt];

@@ -30,14 +30,16 @@
     [self recordTestH264ToMp4WithH265FileName:@"video_1280_720_2.h264" width:1280 height:720];
     NSLog(@"%@",NSHomeDirectory());
     
-//    NSString *mp4FilePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
-//    NSString *h264File = [[NSBundle mainBundle] pathForResource:@"video_480_854.h264" ofType:nil];
-//    NSString *mp4FileName = [h264File lastPathComponent];
-//    mp4FileName = [mp4FileName stringByReplacingOccurrencesOfString:@"h264" withString:@"mp4"];
-//    mp4FilePath = [NSString stringWithFormat:@"%@/ffmpeg%@",mp4FilePath,mp4FileName];
-//    char *ch = [h264File cStringUsingEncoding:NSUTF8StringEncoding];
-//    char *cm = [mp4FilePath cStringUsingEncoding:NSUTF8StringEncoding];
-//    int a = retestff(ch, cm);
+    NSString *mp4FilePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
+    NSString *h264File = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
+    NSString *mp4FileName = [h264File lastPathComponent];
+    mp4FileName = [mp4FileName stringByReplacingOccurrencesOfString:@"h264" withString:@"mp4"];
+    mp4FilePath = [NSString stringWithFormat:@"%@/ffmpeg%@",mp4FilePath,mp4FileName];
+    char *ch = [h264File cStringUsingEncoding:NSUTF8StringEncoding];
+    char *cm = [mp4FilePath cStringUsingEncoding:NSUTF8StringEncoding];
+    int a = retestff(ch, cm);
+    [self saveVideo:mp4FilePath];
+
 }
 
 - (void)recordTestH265ToMp4WithH265FileName:(NSString *)h265FileName {
@@ -82,20 +84,26 @@
     mp4FilePath = [NSString stringWithFormat:@"%@/%@",mp4FilePath,mp4FileName];
     
     NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
-    [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath mp4FilePath:mp4FilePath videoWidth:width videoHeight:height videoFrameRate:25];
+    
+//    [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath
+//                                                    mp4FilePath:mp4FilePath
+//                                                     videoWidth:width
+//                                                    videoHeight:height
+//                                                 videoFrameRate:25];
+    
+    [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath
+                                                aacFilePath:aacPath
+                                                mp4FilePath:mp4FilePath
+                                                 videoWidth:width
+                                                videoHeight:height
+                                             videoFrameRate:25
+                                          audioSampleFormat:1
+                                            audioSampleRate:44100
+                                         audioChannelLayout:0
+                                              audioChannels:2];
     
     [self saveVideo:mp4FilePath];
     
-//    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath
-//                                                aacFilePath:aacPath
-//                                                mp4FilePath:mp4FilePath
-//                                                 videoWidth:width
-//                                                videoHeight:height
-//                                             videoFrameRate:25
-//                                          audioSampleFormat:1
-//                                            audioSampleRate:44100
-//                                         audioChannelLayout:0
-//                                              audioChannels:2];
 //
 //    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"8000_1_16_1.aac" ofType:nil];
 //    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath

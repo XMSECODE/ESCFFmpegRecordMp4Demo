@@ -719,58 +719,7 @@ int retestff(char *in_file,char *out_file){
         }
         log16(out_stream->codecpar->extradata, out_stream->codecpar->extradata_size);
         out_stream->codecpar->codec_tag = 0;
-        {
-            AVStream *o_video_stream = out_stream;
-            
-            o_video_stream->codecpar->codec_tag = 0;
-            
-            
-            o_video_stream->codecpar->bit_rate = 1200000;
-            o_video_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-            o_video_stream->codecpar->codec_id = AV_CODEC_ID_H264;
-            o_video_stream->codecpar->width = 480;
-            o_video_stream->codecpar->height = 854;
-            o_video_stream->codecpar->format = AV_PIX_FMT_YUVJ420P;
-            /*=======================================================================================================================================*/
-            {
-                o_video_stream->codecpar->codec_tag = 0;
-                o_video_stream->codecpar->bit_rate = 0;
-                o_video_stream->codecpar->bits_per_raw_sample = 8;
-                o_video_stream->codecpar->bits_per_coded_sample = 0;
-                o_video_stream->codecpar->profile = 100;
-                o_video_stream->codecpar->level = 31;
-                AVRational rationa;
-                rationa.num = 0;
-                rationa.den = 1;
-                o_video_stream->codecpar->sample_aspect_ratio = rationa;
-                o_video_stream->codecpar->field_order = AV_FIELD_PROGRESSIVE;
-                o_video_stream->codecpar->color_range = AVCOL_RANGE_JPEG;
-                o_video_stream->codecpar->color_primaries = AVCOL_PRI_UNSPECIFIED;
-                o_video_stream->codecpar->color_trc = AVCOL_TRC_UNSPECIFIED;
-                o_video_stream->codecpar->color_space = AVCOL_SPC_UNSPECIFIED;
-                o_video_stream->codecpar->chroma_location = AVCHROMA_LOC_LEFT;
-                o_video_stream->codecpar->video_delay = 0;
-                o_video_stream->codecpar->channel_layout = 0;
-                o_video_stream->codecpar->sample_rate = 0;
-                o_video_stream->codecpar->frame_size = 0;
-                o_video_stream->codecpar->initial_padding = 0;
-                o_video_stream->codecpar->trailing_padding = 0;
-                o_video_stream->codecpar->seek_preroll = 0;
-//
-//
-  
-                log16(o_video_stream->codecpar->extradata, o_video_stream->codecpar->extradata_size);
-                o_video_stream->codecpar->extradata_size = 32;
-                int8_t testdata[32] = {0x00,0x00,0x00,0x01,0x27,0x64,0x00,0x1F,0xAC,0x56,0x50,0x78,0x1B,0x7E,0x69,0xB8,0x10,0x10,0x10,0x36,0x82,0x21,0x19,0x60,0x00,0x00,0x00,0x01,0x28,0xEE,0x37,0x27};
-                //        000000142764001FAC5650781B7E69B810101036822119600000000428EE3727
-                uint8_t *resultd = av_malloc(32);
-                for (int i = 0; i < 32; i++) {
-                    resultd[i] = testdata[i];
-                }
-                o_video_stream->codecpar->extradata = resultd;
-                log16(o_video_stream->codecpar->extradata, o_video_stream->codecpar->extradata_size);
-            }
-        }
+        
     }
     
     
@@ -819,7 +768,7 @@ int retestff(char *in_file,char *out_file){
         tt++;
         pkt.pos = -1;
 //        log_packet(ofmt_ctx, &pkt);
-//        log16(pkt.data, pkt.size);
+        log16(pkt.data, pkt.size);
 //        log16(pkt.buf->data, pkt.buf->size);
         ret = av_interleaved_write_frame(ofmt_ctx, &pkt);
         if (ret < 0) {
