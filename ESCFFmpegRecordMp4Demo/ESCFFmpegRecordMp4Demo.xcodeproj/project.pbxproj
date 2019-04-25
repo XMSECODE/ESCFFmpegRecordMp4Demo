@@ -10,6 +10,7 @@
 		F021950121807677002027AD /* test_1_640_360.h265 in Resources */ = {isa = PBXBuildFile; fileRef = F02194FF21807676002027AD /* test_1_640_360.h265 */; };
 		F021950221807677002027AD /* test_2_640_360.h265 in Resources */ = {isa = PBXBuildFile; fileRef = F021950021807676002027AD /* test_2_640_360.h265 */; };
 		F06CA43B22704716001BF0B7 /* mux.c in Sources */ = {isa = PBXBuildFile; fileRef = F06CA43A22704716001BF0B7 /* mux.c */; };
+		F0854BF72271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.m in Sources */ = {isa = PBXBuildFile; fileRef = F0854BF62271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.m */; };
 		F0EA678C2180680A00D1FCE2 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F0EA678B2180680A00D1FCE2 /* AppDelegate.m */; };
 		F0EA678F2180680A00D1FCE2 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F0EA678E2180680A00D1FCE2 /* ViewController.m */; };
 		F0EA67922180680A00D1FCE2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F0EA67902180680A00D1FCE2 /* Main.storyboard */; };
@@ -50,6 +51,8 @@
 		F06CA43A22704716001BF0B7 /* mux.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mux.c; sourceTree = "<group>"; };
 		F06CA43C227051C9001BF0B7 /* remuxing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = remuxing.c; sourceTree = "<group>"; };
 		F06CA43E2270554E001BF0B7 /* mux.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mux.h; sourceTree = "<group>"; };
+		F0854BF52271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ESCFFmpegRecordMp4FileTool.h; sourceTree = "<group>"; };
+		F0854BF62271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ESCFFmpegRecordMp4FileTool.m; sourceTree = "<group>"; };
 		F0EA67872180680A00D1FCE2 /* ESCFFmpegRecordMp4Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ESCFFmpegRecordMp4Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0EA678A2180680A00D1FCE2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		F0EA678B2180680A00D1FCE2 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -475,6 +478,8 @@
 			children = (
 				F0EA68382180690700D1FCE2 /* ESCFFmpegRecordMp4Tool.h */,
 				F0EA68392180690700D1FCE2 /* ESCFFmpegRecordMp4Tool.m */,
+				F0854BF52271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.h */,
+				F0854BF62271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.m */,
 			);
 			path = ESCFFmepgRecordMp4Tool;
 			sourceTree = "<group>";
@@ -576,6 +581,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F0EA678F2180680A00D1FCE2 /* ViewController.m in Sources */,
+				F0854BF72271880500EF77D5 /* ESCFFmpegRecordMp4FileTool.m in Sources */,
 				F0EA683A2180690700D1FCE2 /* ESCFFmpegRecordMp4Tool.m in Sources */,
 				F0EA679A2180681600D1FCE2 /* main.m in Sources */,
 				F06CA43B22704716001BF0B7 /* mux.c in Sources */,
@@ -722,7 +728,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4SF28MHQDQ;
+				DEVELOPMENT_TEAM = NZ6KCMA9HH;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/include";
 				INFOPLIST_FILE = ESCFFmpegRecordMp4Demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
@@ -745,7 +751,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4SF28MHQDQ;
+				DEVELOPMENT_TEAM = NZ6KCMA9HH;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/include";
 				INFOPLIST_FILE = ESCFFmpegRecordMp4Demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;

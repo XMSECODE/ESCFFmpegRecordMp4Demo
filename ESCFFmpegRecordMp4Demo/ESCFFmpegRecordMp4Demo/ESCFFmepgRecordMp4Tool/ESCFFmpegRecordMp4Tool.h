@@ -31,44 +31,12 @@ typedef enum : NSUInteger {
                     audioChannelLayout:(int)audioChannelLayout
                          audioChannels:(int)audioChannels;
 
-- (void)writeVideoFrame:(void *)data length:(int)length;
+- (void)writeVideoFrame:(void *)data
+                 length:(int)length;
 
-- (void)writeAudioFrame:(void *)data length:(int)length;
+- (void)writeAudioFrame:(void *)data
+                 length:(int)length;
 
 - (void)stopRecord;
-
-+ (void)H265RecordToMP4WithH265FilePath:(NSString *)h265FilePath
-                            mp4FilePath:(NSString *)mp4FilePath
-                             videoWidth:(int)videoWidth
-                            videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate;
-
-+ (void)H265RecordToMP4WithH265FilePath:(NSString *)h265FilePath
-                            aacFilePath:(NSString *)aacFilePath
-                            mp4FilePath:(NSString *)mp4FilePath
-                             videoWidth:(int)videoWidth
-                            videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate
-                      audioSampleFormat:(int)audioSampleFormat
-                        audioSampleRate:(int)audioSampleRate
-                     audioChannelLayout:(int)audioChannelLayout
-                          audioChannels:(int)audioChannels;
-
-+ (void)H264RecordToMP4WithH264FilePath:(NSString *)h264FilePath
-                            mp4FilePath:(NSString *)mp4FilePath
-                             videoWidth:(int)videoWidth
-                            videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate;
-
-+ (void)H264RecordToMP4WithH264FilePath:(NSString *)h264FilePath
-                            aacFilePath:(NSString *)aacFilePath
-                            mp4FilePath:(NSString *)mp4FilePath
-                             videoWidth:(int)videoWidth
-                            videoHeight:(int)videoHeight
-                         videoFrameRate:(int)videoFrameRate
-                      audioSampleFormat:(int)audioSampleFormat
-                        audioSampleRate:(int)audioSampleRate
-                     audioChannelLayout:(int)audioChannelLayout
-                          audioChannels:(int)audioChannels;
 
 @end
