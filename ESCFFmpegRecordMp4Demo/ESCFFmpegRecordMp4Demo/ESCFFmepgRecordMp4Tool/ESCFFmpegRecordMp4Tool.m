@@ -18,15 +18,31 @@
 
 @interface ESCFFmpegRecordMp4Tool ()
 
-@property(nonatomic,assign)AVFormatContext *formatContext;
+@property(nonatomic,assign)AVFormatContext* formatContext;
 
-@property(nonatomic,assign)AVStream * o_video_stream;
+@property(nonatomic,assign)AVStream* out_video_stream;
 
-@property(nonatomic,assign)AVStream *out_audio_stream;
+@property(nonatomic,assign)AVStream* out_audio_stream;
 
 @property(nonatomic,assign)AVRational video_baseTime;
 
 @property(nonatomic,assign)AVRational audio_baseTime;
+
+@property(nonatomic,assign)int videoFrameRate;
+
+@property(nonatomic,assign)int width;
+
+@property(nonatomic,assign)int height;
+
+@property(nonatomic,copy)NSString* filePath;
+
+@property(nonatomic,assign)int audioSampleFormat;
+
+@property(nonatomic,assign)int audioSampleRate;
+
+@property(nonatomic,assign)int audioChannelLayout;
+
+@property(nonatomic,assign)int audioChannels;
 
 @property(nonatomic,assign)int64_t v_pts;
 
@@ -50,124 +66,34 @@
                            videoHeight:(int)videoHeight
                         videoFrameRate:(int)videoFrameRate {
     
-    av_register_all();
-    avcodec_register_all();
-    
     ESCFFmpegRecordMp4Tool *record = [[ESCFFmpegRecordMp4Tool alloc] init];
     
     record.videoCodeType = codecType;
+    record.videoFrameRate = videoFrameRate;
+    record.width = videoWidth;
+    record.height = videoHeight;
+    record.filePath = filePath;
     
-    AVFormatContext *formatContext;
-    const char *fileCharPath = [filePath cStringUsingEncoding:NSUTF8StringEncoding];
-    NSInteger ret = avformat_alloc_output_context2(&formatContext, NULL, NULL, fileCharPath);
-    if (formatContext == nil) {
-        printf("formatContext alloc failed!");
-        return nil;
-    }
-    AVOutputFormat *ofmt = NULL;
-
-    ofmt = formatContext->oformat;
-
-    if (ret < 0) {
-        printf("alloc failed!");
+    BOOL allocFormatContext = [record allocFormatContext];
+    if (allocFormatContext == NO) {
         return nil;
     }
     
-    /*===========================video stream=============================================================================================================*/
-    if (codecType == ESCVideoCodecTypeH264) {
-        formatContext->video_codec_id = AV_CODEC_ID_H264;
-    }else if(codecType == ESCVideoCodecTypeH265) {
-        formatContext->video_codec_id = AV_CODEC_ID_H265;
-    }
-    
-    
-   
-    AVStream *o_video_stream = avformat_new_stream(formatContext, NULL);
-    if (o_video_stream == NULL) {
-        printf("create video stream failed!");
+    BOOL createVideoStream = [record createVideoStream];
+    if(createVideoStream == NO) {
+        avformat_free_context(record.formatContext);
+        printf("create video stream failed!\n");
         return nil;
     }
     
-    o_video_stream->time_base = (AVRational){ 1, videoFrameRate };
-    record.video_baseTime = o_video_stream->time_base;
-    o_video_stream->codecpar->codec_tag = 0;
-
-    
-    o_video_stream->codecpar->bit_rate = 1200000;
-    o_video_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-    o_video_stream->codecpar->codec_id = formatContext->video_codec_id;
-    o_video_stream->codecpar->width = videoWidth;
-    o_video_stream->codecpar->height = videoHeight;
-    o_video_stream->codecpar->format = AV_PIX_FMT_YUVJ420P;
-    /*=======================================================================================================================================*/
-    {
-//        o_video_stream->codecpar->codec_tag = 0;
-//        o_video_stream->codecpar->bit_rate = 0;
-//        o_video_stream->codecpar->bits_per_raw_sample = 8;
-//        o_video_stream->codecpar->bits_per_coded_sample = 0;
-//        o_video_stream->codecpar->profile = 100;
-//        o_video_stream->codecpar->level = 31;
-//        AVRational rationa;
-//        rationa.num = 0;
-//        rationa.den = 1;
-//        o_video_stream->codecpar->sample_aspect_ratio = rationa;
-//        o_video_stream->codecpar->field_order = AV_FIELD_PROGRESSIVE;
-//        o_video_stream->codecpar->color_range = AVCOL_RANGE_JPEG;
-//        o_video_stream->codecpar->color_primaries = AVCOL_PRI_UNSPECIFIED;
-//        o_video_stream->codecpar->color_trc = AVCOL_TRC_UNSPECIFIED;
-//        o_video_stream->codecpar->color_space = AVCOL_SPC_UNSPECIFIED;
-//        o_video_stream->codecpar->chroma_location = AVCHROMA_LOC_LEFT;
-//        o_video_stream->codecpar->video_delay = 0;
-//        o_video_stream->codecpar->channel_layout = 0;
-//        o_video_stream->codecpar->sample_rate = 0;
-//        o_video_stream->codecpar->frame_size = 0;
-//        o_video_stream->codecpar->initial_padding = 0;
-//        o_video_stream->codecpar->trailing_padding = 0;
-//        o_video_stream->codecpar->seek_preroll = 0;
-
-
-//        o_video_stream->codecpar->extradata_size = 32;
-//        int8_t testdata[32] = {0x00,0x00,0x00,0x01,0x27,0x64,0x00,0x1F,0xAC,0x56,0x50,0x78,0x1B,0x7E,0x69,0xB8,0x10,0x10,0x10,0x36,0x82,0x21,0x19,0x60,0x00,0x00,0x00,0x01,0x28,0xEE,0x37,0x27};
-////        000000142764001FAC5650781B7E69B810101036822119600000000428EE3727
-//        uint8_t *resultd = av_malloc(32);
-//        for (int i = 0; i < 32; i++) {
-//            resultd[i] = testdata[i];
-//        }
-//        o_video_stream->codecpar->extradata = resultd;
-    }
-    av_dump_format(formatContext, 0, fileCharPath, 1);
-    
-    ret = avio_open(&formatContext->pb, fileCharPath, AVIO_FLAG_WRITE);
-    if (ret < 0) {
-        printf("open io failed!");
+    BOOL openFile = [record openFileAndWriteHeader];
+    if (openFile == NO) {
         return nil;
     }
-    AVDictionary *opt = NULL;
-//    ret = av_dict_set(&opt, "movflags", "faststart", 0);
-//    if (ret < 0) {
-//        printf("set option failed！");
-//        return nil;
-//    }
-    ret = av_dict_set_int(&opt, "framerate", 20, 0);
-    if (ret < 0) {
-        printf("set option failed！");
-        return nil;
-    }
-    
-    printf("start write header!\n");
-    ret = avformat_write_header(formatContext, &opt);
-    if (ret < 0) {
-        printf("write header failed!");
-        return nil;
-    }else {
-        printf("write header success!\n");
-    }
-    
-    record.formatContext = formatContext;
-    record.o_video_stream = o_video_stream;
     
     return record;
 }
+
 
 + (instancetype)recordFileWithFilePath:(NSString *)filePath
                              codecType:(int)codecType
@@ -179,119 +105,156 @@
                     audioChannelLayout:(int)audioChannelLayout
                          audioChannels:(int)audioChannels {
     
-    av_register_all();
-    avcodec_register_all();
     
     ESCFFmpegRecordMp4Tool *record = [[ESCFFmpegRecordMp4Tool alloc] init];
     
     record.videoCodeType = codecType;
+    record.videoFrameRate = videoFrameRate;
+    record.width = videoWidth;
+    record.height = videoHeight;
+    record.filePath = filePath;
+    record.audioSampleFormat = audioSampleFormat;
+    record.audioSampleRate = audioSampleRate;
+    record.audioChannelLayout = audioChannelLayout;
+    record.audioChannels = audioChannels;
+    
+    
+    BOOL allocFormatContext = [record allocFormatContext];
+    if (allocFormatContext == NO) {
+        return nil;
+    }
+    
+    BOOL createVideoStream = [record createVideoStream];
+    if(createVideoStream == NO) {
+        avformat_free_context(record.formatContext);
+        printf("create video stream failed!\n");
+        return nil;
+    }
+   
+    BOOL createAudioStream = [record createAudioStream];
+    if(createAudioStream == NO) {
+        avformat_free_context(record.formatContext);
+        printf("create audio stream failed!\n");
+        return nil;
+    }
+    
+    BOOL openFile = [record openFileAndWriteHeader];
+    if (openFile == NO) {
+        return nil;
+    }
+    
+    return record;
+}
+
+- (BOOL)allocFormatContext {
+    av_register_all();
+    avcodec_register_all();
     
     AVFormatContext *formatContext;
-    const char *fileCharPath = [filePath cStringUsingEncoding:NSUTF8StringEncoding];
+    
+    const char *fileCharPath = [self.filePath cStringUsingEncoding:NSUTF8StringEncoding];
     NSInteger ret = avformat_alloc_output_context2(&formatContext, NULL, NULL, fileCharPath);
     if (formatContext == nil) {
         printf("formatContext alloc failed!");
         return nil;
     }
+    self.formatContext = formatContext;
+    
+    AVOutputFormat *ofmt = NULL;
+    
+    ofmt = formatContext->oformat;
     
     if (ret < 0) {
         printf("alloc failed!");
         return nil;
     }
     
-    /*===========================video stream=============================================================================================================*/
-    if (codecType == ESCVideoCodecTypeH264) {
+    if (self.videoCodeType == ESCVideoCodecTypeH264) {
         formatContext->video_codec_id = AV_CODEC_ID_H264;
-    }else if(codecType == ESCVideoCodecTypeH265) {
+    }else if(self.videoCodeType == ESCVideoCodecTypeH265) {
         formatContext->video_codec_id = AV_CODEC_ID_H265;
     }
+    return YES;
+}
+
+- (BOOL)openFileAndWriteHeader {
+    const char *fileCharPath = [self.filePath cStringUsingEncoding:NSUTF8StringEncoding];
     
+    //打印
+    av_dump_format(_formatContext, 0, fileCharPath, 1);
     
-    AVCodec *videoCodec = avcodec_find_encoder(AV_CODEC_ID_H264);
-    if (videoCodec) {
-        printf("find videocodec success!\n");
+    int ret = avio_open(&_formatContext->pb, fileCharPath, AVIO_FLAG_WRITE);
+    if (ret < 0) {
+        printf("open io failed!");
+        return NO;
     }
-    AVStream *o_video_stream = avformat_new_stream(formatContext, videoCodec);
-    if (o_video_stream == NULL) {
-        printf("create video stream failed!");
-        return nil;
+    
+    printf("start write header!\n");
+    ret = avformat_write_header(_formatContext, NULL);
+    if (ret < 0) {
+        printf("write header failed!");
+        return NO;
+    }else {
+        printf("write header success!\n");
+        return YES;
     }
-    
-    o_video_stream->time_base = (AVRational){ 1, videoFrameRate };
-    record.video_baseTime = o_video_stream->time_base;
-    
-    
-    AVCodecParameters *parameters = o_video_stream->codecpar;
-    parameters->bit_rate = 1200000;
-    parameters->codec_type = AVMEDIA_TYPE_VIDEO;
-    parameters->codec_id = formatContext->video_codec_id;
-    parameters->width = videoWidth;
-    parameters->height = videoHeight;
-    parameters->format = AV_PIX_FMT_YUV420P;
-    
-    /*====================================audio stream===================================================================================================*/
+}
+
+- (BOOL)createAudioStream {
     AVCodec *audioCodec = NULL;
     audioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
     if (audioCodec) {
         printf("find audioCodec success!\n");
     }
-    AVStream *out_audio_stream = avformat_new_stream(formatContext, audioCodec);
+    AVStream *out_audio_stream = avformat_new_stream(_formatContext, audioCodec);
     if (out_audio_stream == NULL) {
         printf("create audio stream failed!");
         return nil;
     }
-
-    out_audio_stream->time_base = (AVRational){ 1, audioSampleRate };
-    record.audio_baseTime = out_audio_stream->time_base;
+    
+    out_audio_stream->time_base = (AVRational){ 1, self.audioSampleRate };
+    self.audio_baseTime = out_audio_stream->time_base;
     
     AVCodecParameters *audioParameters = out_audio_stream->codecpar;
-    audioParameters->sample_rate = audioSampleRate;
+    audioParameters->sample_rate = self.audioSampleRate;
     //AVSampleFormat
     audioParameters->format = AV_SAMPLE_FMT_S16P;
     audioParameters->codec_id = AV_CODEC_ID_AAC;
     audioParameters->codec_type = AVMEDIA_TYPE_AUDIO;
     audioParameters->bit_rate = 64000;
-    audioParameters->channels = audioChannels;
-    audioParameters->channel_layout = audioChannelLayout;
-//    audioParameters->channels = av_get_channel_layout_nb_channels(audioParameters->channel_layout);
-    out_audio_stream->time_base = (AVRational){ 1, parameters->sample_rate};
+    audioParameters->channels = self.audioChannels;
+    audioParameters->channel_layout = self.audioChannelLayout;
+    //    audioParameters->channels = av_get_channel_layout_nb_channels(audioParameters->channel_layout);
+    out_audio_stream->time_base = (AVRational){ 1, audioParameters->sample_rate};
+    self.out_audio_stream = out_audio_stream;
+    
+    return YES;
+}
 
-    /*=======================================================================================================================================*/
+- (BOOL)createVideoStream {
+    
+    AVStream *o_video_stream = avformat_new_stream(_formatContext, NULL);
+    if (o_video_stream == NULL) {
+        printf("create video stream failed!");
+        return NO;
+    }
+    
+    o_video_stream->time_base = (AVRational){ 1, self.videoFrameRate };
+    self.video_baseTime = o_video_stream->time_base;
+    o_video_stream->codecpar->codec_tag = 0;
     
     
-    av_dump_format(formatContext, 0, fileCharPath, 1);
+    o_video_stream->codecpar->bit_rate = 1200000;
+    o_video_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+    o_video_stream->codecpar->codec_id = _formatContext->video_codec_id;
+    o_video_stream->codecpar->width = self.width;
+    o_video_stream->codecpar->height = self.height;
+    o_video_stream->codecpar->format = AV_PIX_FMT_YUVJ420P;
     
-    ret = avio_open(&formatContext->pb, fileCharPath, AVIO_FLAG_WRITE);
-    if (ret < 0) {
-        printf("open io failed!");
-        return nil;
-    }
-//    av_dict_set(<#AVDictionary **pm#>, <#const char *key#>, <#const char *value#>, <#int flags#>)
-    AVDictionary *opt = NULL;
-    ret = av_dict_set(&opt, "movflags", "faststart", 0);
-    if (ret < 0) {
-        printf("set option failed！");
-        return nil;
-    }
-    ret = av_dict_set_int(&opt, "framerate", 20, 0);
-    if (ret < 0) {
-        printf("set option failed！");
-        return nil;
-    }
+    self.out_video_stream = o_video_stream;
+    
+    return YES;
 
-    printf("start write header!\n");
-    ret = avformat_write_header(formatContext, &opt);
-    if (ret < 0) {
-        printf("write header failed!");
-        return nil;
-    }else {
-        printf("write header success!\n");
-    }
-    
-    record.formatContext = formatContext;
-    record.o_video_stream = o_video_stream;
-    record.out_audio_stream = out_audio_stream;
-    return record;
 }
 
 - (BOOL)getPPsAndSPS:(void *)data length:(int)length {
@@ -354,7 +317,7 @@
     }
     if (getSPS == YES && getPPS == YES) {
         //sps + pps
-        self.o_video_stream->codecpar->extradata_size = (int)sps.length + (int)pps.length;
+        self.out_video_stream->codecpar->extradata_size = (int)sps.length + (int)pps.length;
         uint8_t *resultd = av_malloc(sps.length + pps.length);
         int8_t *spsData = (int8_t *)[sps bytes];
         int8_t *ppsData = (int8_t *)[pps bytes];
@@ -364,7 +327,7 @@
         for (int i = 0; i < pps.length; i++) {
             resultd[i + sps.length] = ppsData[i];
         }
-        self.o_video_stream->codecpar->extradata = resultd;
+        self.out_video_stream->codecpar->extradata = resultd;
         self.getH264Extradata = YES;
         return YES;
     }else {
@@ -410,7 +373,7 @@
     self.v_dts++;
     self.v_pts++;
     
-    ret = [self writeFrame:_formatContext time_base:&_video_baseTime stream:_o_video_stream packet:&i_pkt];
+    ret = [self writeFrame:_formatContext time_base:&_video_baseTime stream:_out_video_stream packet:&i_pkt];
     av_packet_unref(&i_pkt);
     if (ret != 0) {
         NSLog(@"添加失败");
@@ -456,17 +419,17 @@
     
 }
 
-- (int)writeFrame:(AVFormatContext*)fmt_ctx time_base:(AVRational *)time_base stream:(AVStream *)stream packet:(AVPacket *)pkt {
+- (int)writeFrame:(AVFormatContext*)fmt_ctx
+        time_base:(AVRational *)time_base
+           stream:(AVStream *)stream
+           packet:(AVPacket *)pkt {
     av_packet_rescale_ts(pkt, *time_base, stream->time_base);
     pkt->stream_index = stream->index;
     return av_interleaved_write_frame(fmt_ctx, pkt);
 }
 
-
-
 - (void)stopRecord {
-    if( _formatContext )
-    {
+    if( _formatContext ) {
         int ret = av_write_trailer(_formatContext);
         if(ret != 0) {
             NSLog(@"结束文件失败");
