@@ -264,59 +264,93 @@
     uint8_t *voiceData = (uint8_t*)[aacData bytes];
     int j = 0;
     lastJ = 0;
-    int  fff = 0;
+    //读取fff的方式读取
     while (j < aacData.length) {
         if (voiceData[j] == 0xff &&
             (voiceData[j + 1] & 0xf0) == 0xf0) {
-            if (j >= 0) {
-                
-                int protection_absent = 0;
-                uint8_t dataIndex1 = voiceData[j + 1];
-                protection_absent = dataIndex1 & 0x1;
-                NSLog(@"fff == %d",fff++);
-                int headerLen = protection_absent==1 ? 7 : 9;
-//                NSLog(@"headerLen == %d",headerLen);
-                //取出长度
-                int adtsLength = 0;
-                
-//                for (int i = j; i < j + 7; i++) {
-//                    printf("  %X  ",voiceData[i]);
-//                }
-//                printf("\n");
-                
-                uint8_t dataIndex3 = voiceData[j + 3];
-                uint8_t dataIndex4 = voiceData[j + 4];
-                uint8_t dataIndex5 = voiceData[j + 5];
-                
-                dataIndex3 = dataIndex3 & 0x03;
-                dataIndex5 = dataIndex5 >> 5;
-                
-                uint data3 = (uint)dataIndex3;
-                uint data4 = (uint)dataIndex4;
-                uint data5 = (uint)dataIndex5;
-                
-                adtsLength = adtsLength | ((int)data3 << 11);
-                adtsLength = adtsLength | ((int)data4 << 3);
-                adtsLength = adtsLength | ((int)data5);
-//                NSLog(@"adtsLength == %d===%d",adtsLength,j);
+            if (j > 0) {
                 //0xfff判断AAC头
-                int frame_size = adtsLength;
+                int frame_size = j - lastJ;
                 if (frame_size > 7) {
-//                    [tool writeAudioFrame:&voiceData[lastJ + headerLen] length:frame_size - headerLen];
                     [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
-                    //                    NSLog(@"%@",[NSData dataWithBytes:&voiceData[lastJ] length:frame_size]);
-                    j += frame_size;
-//                    for (int i = j; i < j + 7; i++) {
-//                        printf("  %X  ",voiceData[i]);
-//                    }
-//                    printf("\n");
-                    continue;
+                    lastJ = j;
                 }
             }
+        }else if (j == aacData.length - 1) {
+            int frame_size = j - lastJ;
+            if (frame_size > 7) {
+                [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+                lastJ = j;
+            }
         }
-        NSLog(@"错误==%d",j);
         j++;
     }
+    
+    /*
+     读取ADTS头的方式读取,测试失败，原因未知
+     {
+     
+     NSData *aacData = [NSData dataWithContentsOfFile:aacFilePath];
+     uint8_t *voiceData = (uint8_t*)[aacData bytes];
+     int j = 0;
+     lastJ = 0;
+     int  fff = 0;
+     while (j < aacData.length) {
+     if (voiceData[j] == 0xff &&
+     (voiceData[j + 1] & 0xf0) == 0xf0) {
+     if (j >= 0) {
+     
+     int protection_absent = 0;
+     uint8_t dataIndex1 = voiceData[j + 1];
+     protection_absent = dataIndex1 & 0x1;
+     NSLog(@"fff == %d",fff++);
+     int headerLen = protection_absent==1 ? 7 : 9;
+     //                NSLog(@"headerLen == %d",headerLen);
+     //取出长度
+     int adtsLength = 0;
+     
+     //                for (int i = j; i < j + 7; i++) {
+     //                    printf("  %X  ",voiceData[i]);
+     //                }
+     //                printf("\n");
+     
+     uint8_t dataIndex3 = voiceData[j + 3];
+     uint8_t dataIndex4 = voiceData[j + 4];
+     uint8_t dataIndex5 = voiceData[j + 5];
+     
+     dataIndex3 = dataIndex3 & 0x03;
+     dataIndex5 = dataIndex5 >> 5;
+     
+     uint data3 = (uint)dataIndex3;
+     uint data4 = (uint)dataIndex4;
+     uint data5 = (uint)dataIndex5;
+     
+     adtsLength = adtsLength | ((int)data3 << 11);
+     adtsLength = adtsLength | ((int)data4 << 3);
+     adtsLength = adtsLength | ((int)data5);
+     //                NSLog(@"adtsLength == %d===%d",adtsLength,j);
+     //0xfff判断AAC头
+     int frame_size = adtsLength;
+     if (frame_size > 7) {
+     //                    [tool writeAudioFrame:&voiceData[lastJ + headerLen] length:frame_size - headerLen];
+     [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+     //                    NSLog(@"%@",[NSData dataWithBytes:&voiceData[lastJ] length:frame_size]);
+     j += frame_size;
+     //                    for (int i = j; i < j + 7; i++) {
+     //                        printf("  %X  ",voiceData[i]);
+     //                    }
+     //                    printf("\n");
+     continue;
+     }
+     }
+     }
+     NSLog(@"错误==%d",j);
+     j++;
+     }
+     }
+     */
+    
+    
     [tool stopRecord];
     NSLog(@"完成");
 }
