@@ -403,8 +403,8 @@
     pkt.pts = self.a_pts;
     pkt.duration = 1024 * frameSampleLength;
     
-    printf("dts  %d  ",pkt.dts);
-    printf("pts  %d  ",pkt.pts);
+//    printf("dts  %d  ",pkt.dts);
+//    printf("pts  %d  ",pkt.pts);
     
 //    ret = write_frame(oc, &c->time_base, ost->st, &pkt);
     ret = [self writeFrame:_formatContext time_base:&_audio_baseTime stream:_out_audio_stream packet:&pkt];

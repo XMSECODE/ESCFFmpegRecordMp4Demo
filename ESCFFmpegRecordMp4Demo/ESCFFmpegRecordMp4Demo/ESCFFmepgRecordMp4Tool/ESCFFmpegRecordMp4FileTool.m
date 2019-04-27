@@ -259,33 +259,33 @@
             lastJ = i;
         }
     }
-    
-    NSData *aacData = [NSData dataWithContentsOfFile:aacFilePath];
-    uint8_t *voiceData = (uint8_t*)[aacData bytes];
-    int j = 0;
-    lastJ = 0;
-    //读取fff的方式读取
-    while (j < aacData.length) {
-        if (voiceData[j] == 0xff &&
-            (voiceData[j + 1] & 0xf0) == 0xf0) {
-            if (j > 0) {
-                //0xfff判断AAC头
+    {
+        NSData *aacData = [NSData dataWithContentsOfFile:aacFilePath];
+        uint8_t *voiceData = (uint8_t*)[aacData bytes];
+        int j = 0;
+        lastJ = 0;
+        //读取fff的方式读取
+        while (j < aacData.length) {
+            if (voiceData[j] == 0xff &&
+                (voiceData[j + 1] & 0xf0) == 0xf0) {
+                if (j > 0) {
+                    //0xfff判断AAC头
+                    int frame_size = j - lastJ;
+                    if (frame_size > 7) {
+                        [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
+                        lastJ = j;
+                    }
+                }
+            }else if (j == aacData.length - 1) {
                 int frame_size = j - lastJ;
                 if (frame_size > 7) {
                     [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
                     lastJ = j;
                 }
             }
-        }else if (j == aacData.length - 1) {
-            int frame_size = j - lastJ;
-            if (frame_size > 7) {
-                [tool writeAudioFrame:&voiceData[lastJ] length:frame_size];
-                lastJ = j;
-            }
+            j++;
         }
-        j++;
     }
-    
     /*
      读取ADTS头的方式读取,测试失败，原因未知
      {
