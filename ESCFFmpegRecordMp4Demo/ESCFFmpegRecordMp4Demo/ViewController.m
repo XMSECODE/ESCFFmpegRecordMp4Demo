@@ -25,9 +25,10 @@
 //    [self recordTestH265ToMp4WithH265FileName:@"test_1_640_360.h265"];
 //    [self recordTestH265ToMp4WithH265FileName:@"test_2_640_360.h265"];
     
-    [self recordTestH264ToMp4WithH265FileName:@"video_480_854.h264" width:480 height:854];
-    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720.h264" width:1280 height:720];
-    [self recordTestH264ToMp4WithH265FileName:@"video_1280_720_2.h264" width:1280 height:720];
+    [self recordTestH264ToMp4WithH264FileName:@"video_480_854.h264" width:480 height:854];
+    [self recordTestH264ToMp4WithH264FileName:@"video_1280_720.h264" width:1280 height:720];
+    [self recordTestH264ToMp4WithH264FileName:@"video_1280_720_2.h264" width:1280 height:720];
+    [self recordTestH264ToMp4WithH264FileName:@"test.h264" width:1280 height:720];
     NSLog(@"%@",NSHomeDirectory());
     
     NSString *mp4FilePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
@@ -75,7 +76,7 @@
 //                                              audioChannels:1];
 }
 
-- (void)recordTestH264ToMp4WithH265FileName:(NSString *)h264FileName width:(int)width height:(int)height{
+- (void)recordTestH264ToMp4WithH264FileName:(NSString *)h264FileName width:(int)width height:(int)height{
     NSString *h264FilePath = [[NSBundle mainBundle] pathForResource:h264FileName ofType:nil];
     
     NSString *mp4FilePath = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
