@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 48;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -533,11 +533,12 @@
 				TargetAttributes = {
 					F0EA67862180680A00D1FCE2 = {
 						CreatedOnToolsVersion = 10.0;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
 			buildConfigurationList = F0EA67822180680A00D1FCE2 /* Build configuration list for PBXProject "ESCFFmpegRecordMp4Demo" */;
-			compatibilityVersion = "Xcode 9.3";
+			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -736,10 +737,7 @@
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/include";
 				INFOPLIST_FILE = ESCFFmpegRecordMp4Demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/lib",
@@ -759,10 +757,7 @@
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/include";
 				INFOPLIST_FILE = ESCFFmpegRecordMp4Demo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ESCFFmpegRecordMp4Demo/FFmpeg-iOS/lib",
