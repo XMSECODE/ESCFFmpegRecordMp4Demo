@@ -84,7 +84,7 @@
     mp4FileName = [mp4FileName stringByReplacingOccurrencesOfString:@"h264" withString:@"mp4"];
     mp4FilePath = [NSString stringWithFormat:@"%@/%@",mp4FilePath,mp4FileName];
     
-    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
+//    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"vocal.aac" ofType:nil];
     
 //    [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath
 //                                                    mp4FilePath:mp4FilePath
@@ -92,6 +92,20 @@
 //                                                    videoHeight:height
 //                                                 videoFrameRate:25];
     
+//    [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath
+//                                                aacFilePath:aacPath
+//                                                mp4FilePath:mp4FilePath
+//                                                 videoWidth:width
+//                                                videoHeight:height
+//                                             videoFrameRate:25
+//                                          audioSampleFormat:1
+//                                            audioSampleRate:44100
+//                                         audioChannelLayout:0
+//                                              audioChannels:2];
+    
+    
+//
+    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"8000_1_16_1.aac" ofType:nil];
     [ESCFFmpegRecordMp4FileTool H264RecordToMP4WithH264FilePath:h264FilePath
                                                 aacFilePath:aacPath
                                                 mp4FilePath:mp4FilePath
@@ -99,24 +113,10 @@
                                                 videoHeight:height
                                              videoFrameRate:25
                                           audioSampleFormat:1
-                                            audioSampleRate:44100
+                                            audioSampleRate:8000
                                          audioChannelLayout:0
-                                              audioChannels:2];
-    
+                                              audioChannels:1];
     [self saveVideo:mp4FilePath];
-    
-//
-//    NSString *aacPath = [[NSBundle mainBundle] pathForResource:@"8000_1_16_1.aac" ofType:nil];
-//    [ESCFFmpegRecordMp4Tool H264RecordToMP4WithH264FilePath:h264FilePath
-//                                                aacFilePath:aacPath
-//                                                mp4FilePath:mp4FilePath
-//                                                 videoWidth:width
-//                                                videoHeight:height
-//                                             videoFrameRate:25
-//                                          audioSampleFormat:1
-//                                            audioSampleRate:8000
-//                                         audioChannelLayout:0
-//                                              audioChannels:1];
 }
 
 //videoPath为视频下载到本地之后的本地路径

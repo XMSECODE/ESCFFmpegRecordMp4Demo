@@ -717,7 +717,7 @@ int retestff(char *in_file,char *out_file){
             fprintf(stderr, "Failed to copy codec parameters\n");
             goto end;
         }
-        log16(out_stream->codecpar->extradata, out_stream->codecpar->extradata_size);
+//        log16(out_stream->codecpar->extradata, out_stream->codecpar->extradata_size);
         out_stream->codecpar->codec_tag = 0;
         
     }
@@ -768,7 +768,7 @@ int retestff(char *in_file,char *out_file){
         tt++;
         pkt.pos = -1;
 //        log_packet(ofmt_ctx, &pkt);
-        log16(pkt.data, pkt.size);
+//        log16(pkt.data, pkt.size);
 //        log16(pkt.buf->data, pkt.buf->size);
         ret = av_interleaved_write_frame(ofmt_ctx, &pkt);
         if (ret < 0) {

@@ -397,7 +397,7 @@
     self.a_dts += 1024 * frameSampleLength;
     self.a_pts += 1024 * frameSampleLength;
     
-    NSLog(@"%d==%d",frameSampleLength,length);
+//    NSLog(@"%d==%d",frameSampleLength,length);
     
     pkt.dts = self.a_dts;
     pkt.pts = self.a_pts;
